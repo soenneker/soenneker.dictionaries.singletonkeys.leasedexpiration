@@ -15,8 +15,7 @@ namespace Soenneker.Dictionaries.SingletonKeys.LeasedExpiration;
 /// </summary>
 /// <typeparam name="TKey">The key type. Must be non-null.</typeparam>
 /// <typeparam name="TValue">The leased value type.</typeparam>
-public sealed class
-    LeasedExpirationSingletonKeyDictionary<TKey, TValue> : ILeasedExpirationSingletonKeyDictionary<TKey, TValue>
+public class LeasedExpirationSingletonKeyDictionary<TKey, TValue> : ILeasedExpirationSingletonKeyDictionary<TKey, TValue>
     where TKey : notnull
 {
     private readonly ConcurrentDictionary<TKey, LeasedExpirationEntry<TKey, TValue>> _entries = new();
