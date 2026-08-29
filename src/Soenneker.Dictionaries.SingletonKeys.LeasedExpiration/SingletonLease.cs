@@ -5,11 +5,6 @@ using Soenneker.Atomics.ValueBools;
 
 namespace Soenneker.Dictionaries.SingletonKeys.LeasedExpiration;
 
-/// <summary>
-/// Represents an active lease for a singleton value.
-/// </summary>
-/// <typeparam name="TKey">The key type. Must be non-null.</typeparam>
-/// <typeparam name="TValue">The leased value type.</typeparam>
 public sealed class SingletonLease<TKey, TValue> : IDisposable, IAsyncDisposable where TKey : notnull
 {
     private LeasedExpirationSingletonKeyDictionary<TKey, TValue>? _owner;

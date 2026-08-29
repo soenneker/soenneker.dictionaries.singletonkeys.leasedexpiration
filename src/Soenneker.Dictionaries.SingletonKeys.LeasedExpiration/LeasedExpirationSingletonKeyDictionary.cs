@@ -10,11 +10,6 @@ using Soenneker.Extensions.ValueTask;
 
 namespace Soenneker.Dictionaries.SingletonKeys.LeasedExpiration;
 
-/// <summary>
-/// A keyed singleton cache that returns leases and disposes values only after they are idle and no leases are active.
-/// </summary>
-/// <typeparam name="TKey">The key type. Must be non-null.</typeparam>
-/// <typeparam name="TValue">The leased value type.</typeparam>
 public class LeasedExpirationSingletonKeyDictionary<TKey, TValue> : ILeasedExpirationSingletonKeyDictionary<TKey, TValue>
     where TKey : notnull
 {
