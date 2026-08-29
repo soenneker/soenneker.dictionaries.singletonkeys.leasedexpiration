@@ -6,6 +6,9 @@ using Soenneker.Dictionaries.SingletonKeys.LeasedExpiration;
 
 namespace Soenneker.Dictionaries.SingletonKeys.LeasedExpiration.Abstract;
 
+/// <summary>
+/// Defines leased access to singleton values with idle-expiration semantics.
+/// </summary>
 public interface ILeasedExpirationSingletonKeyDictionary<TKey, TValue> : IDisposable, IAsyncDisposable where TKey : notnull
 {
     /// <summary>

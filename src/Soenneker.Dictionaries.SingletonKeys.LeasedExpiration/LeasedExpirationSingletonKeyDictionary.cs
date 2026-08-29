@@ -10,6 +10,7 @@ using Soenneker.Extensions.ValueTask;
 
 namespace Soenneker.Dictionaries.SingletonKeys.LeasedExpiration;
 
+/// <inheritdoc cref="ILeasedExpirationSingletonKeyDictionary{TKey, TValue}"/>
 public class LeasedExpirationSingletonKeyDictionary<TKey, TValue> : ILeasedExpirationSingletonKeyDictionary<TKey, TValue>
     where TKey : notnull
 {
