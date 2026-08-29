@@ -2,32 +2,50 @@
 [![](https://img.shields.io/github/actions/workflow/status/soenneker/soenneker.dictionaries.singletonkeys.leasedexpiration/publish-package.yml?style=for-the-badge)](https://github.com/soenneker/soenneker.dictionaries.singletonkeys.leasedexpiration/actions/workflows/publish-package.yml)
 [![](https://img.shields.io/nuget/dt/soenneker.dictionaries.singletonkeys.leasedexpiration.svg?style=for-the-badge)](https://www.nuget.org/packages/soenneker.dictionaries.singletonkeys.leasedexpiration/)
 
-# ![](https://user-images.githubusercontent.com/4441470/224455560-91ed3ee7-f510-4041-a8d2-3fc093025112.png) Soenneker.Dictionaries.SingletonKeys.LeasedExpiration
-### Thread-safe leased keyed singletons with idle expiration and safe disposal.
+# Soenneker.Dictionaries.SingletonKeys.LeasedExpiration
 
-## Installation
+Defines leased access to singleton values with idle-expiration semantics.
 
-```
+## Install
+
+```bash
 dotnet add package Soenneker.Dictionaries.SingletonKeys.LeasedExpiration
 ```
 
-## Usage
+## Quick start
 
 ```csharp
-var clients = new LeasedExpirationSingletonKeyDictionary<string, MyClient>(
-    TimeSpan.FromMinutes(15),
-    static key => new MyClient(key));
+using Soenneker.Dictionaries.SingletonKeys.LeasedExpiration.Abstract;
 
-await using SingletonLease<string, MyClient> lease = await clients.GetLease("tenant-a", cancellationToken);
-
-await lease.Value.Send(cancellationToken);
+ILeasedExpirationSingletonKeyDictionary<TKey, TValue> leasedExpirationSingletonKeyDictionary = /* resolve from DI */;
+var result = await leasedExpirationSingletonKeyDictionary.GetLease(/* supply key */ default!, default);
 ```
 
-Values are disposed after the idle expiration only when no leases are active. Expiration is scanned by one dictionary-wide sweeper, so disposal can occur up to one sweep interval after the idle window. Callers should not store or use `lease.Value` after disposing the lease.
+Retrieves a lease for the singleton value associated with `key`, creating and caching it if it does not already exist. Successful retrieval resets that key's idle expiration.
 
-```csharp
-var clients = new LeasedExpirationSingletonKeyDictionary<string, MyClient>(
-    TimeSpan.FromMinutes(15),
-    static key => new MyClient(key),
-    sweepInterval: TimeSpan.FromSeconds(30));
-```
+## What you get
+
+- `ILeasedExpirationSingletonKeyDictionary<TKey, TValue>` — Defines leased access to singleton values with idle-expiration semantics.
+
+## API at a glance
+
+| API | What it does | Result / important behavior |
+| --- | --- | --- |
+| `ILeasedExpirationSingletonKeyDictionary<TKey, TValue>.IdleExpiration` | Gets the idle duration after which a cached value is evicted when it has not been leased. | Gets the idle duration after which a cached value is evicted when it has not been leased. |
+| `ILeasedExpirationSingletonKeyDictionary<TKey, TValue>.SweepInterval` | Gets the interval used by the dictionary-wide sweeper to scan for expired idle entries. | Gets the interval used by the dictionary-wide sweeper to scan for expired idle entries. |
+| `ILeasedExpirationSingletonKeyDictionary<TKey, TValue>.GetLease(state, keyFactory, cancellationToken)` | Retrieves lease. | A task whose result is the requested singleton Lease. |
+| `ILeasedExpirationSingletonKeyDictionary<TKey, TValue>.Initialize(state, factory)` | Configures the stateful initialization function used to create values for missing keys. | The resulting leased Expiration Singleton Key Dictionary. |
+| `ILeasedExpirationSingletonKeyDictionary<TKey, TValue>.SetInitialization(func)` | Sets the async initialization function used to create values for a key. | Returns no value; the requested change is complete when the method returns. |
+| `ILeasedExpirationSingletonKeyDictionary<TKey, TValue>.TryRemove(key, value)` | Removes the cached value without disposing it only when no leases are active. | true if removes the cached value without disposing it only when no leases are active; otherwise, false. |
+| `ILeasedExpirationSingletonKeyDictionary<TKey, TValue>.TryRemoveAndDispose(key)` | Removes and disposes the cached value only when no leases are active. | true if removes and disposes the cached value only when no leases are active; otherwise, false. |
+| `ILeasedExpirationSingletonKeyDictionary<TKey, TValue>.TryRemoveAndDisposeSync(key)` | Synchronously removes and disposes the cached value only when no leases are active. | true if synchronously removes and disposes the cached value only when no leases are active; otherwise, false. |
+| `ILeasedExpirationSingletonKeyDictionary<TKey, TValue>.Remove(key, cancellationToken)` | Removes and disposes the cached value only when no leases are active. | true if removes and disposes the cached value only when no leases are active; otherwise, false. |
+| `ILeasedExpirationSingletonKeyDictionary<TKey, TValue>.RemoveSync(key, cancellationToken)` | Synchronously removes and disposes the cached value only when no leases are active. | true if synchronously removes and disposes the cached value only when no leases are active; otherwise, false. |
+| `ILeasedExpirationSingletonKeyDictionary<TKey, TValue>.Clear(cancellationToken)` | Clears and disposes all cached values. Active leases may observe disposed values after this call. | A task that completes when the Leased Expiration Singleton Key Dictionary has been cleared. |
+| `ILeasedExpirationSingletonKeyDictionary<TKey, TValue>.ClearSync()` | Synchronously clears and disposes all cached values. Active leases may observe disposed values after this call. | Returns no value; the requested change is complete when the method returns. |
+
+## Practical notes
+
+- Cancellation stops pending work; it does not undo work that has already completed.
+- Calls that return a cached or singleton value reuse the same instance until the owning service is disposed.
+- Dispose instances you own when their scope ends so held resources can be released.
