@@ -182,4 +182,30 @@ public sealed class LeasedExpirationSingletonKeyDictionaryTests : UnitTest
             return await dict.GetLease(key);
         }
     }
+
+    [Test]
+    public async Task Clear_defers_disposal_until_active_lease_is_released()
+    {
+        var disposed = 0;
+        var dict = new LeasedExpirationSingletonKeyDictionary<string, DisposableValue>(TimeSpan.FromMinutes(1),
+            _ => new DisposableValue(() => Interlocked.Increment(ref disposed)));
+
+        SingletonLease<string, DisposableValue> firstLease = await dict.GetLease("a");
+        DisposableValue firstValue = firstLease.Value;
+
+        await dict.Clear();
+        disposed.Should().Be(0);
+
+        SingletonLease<string, DisposableValue> replacementLease = await dict.GetLease("a");
+        replacementLease.Value.Should().NotBeSameAs(firstValue);
+
+        await firstLease.DisposeAsync();
+        disposed.Should().Be(1);
+
+        await dict.DisposeAsync();
+        disposed.Should().Be(1);
+
+        await replacementLease.DisposeAsync();
+        disposed.Should().Be(2);
+    }
 }

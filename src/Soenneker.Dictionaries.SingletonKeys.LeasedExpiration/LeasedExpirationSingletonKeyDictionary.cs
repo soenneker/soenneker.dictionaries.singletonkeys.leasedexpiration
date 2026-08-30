@@ -461,14 +461,19 @@ public class LeasedExpirationSingletonKeyDictionary<TKey, TValue> : ILeasedExpir
 
             entry.LeaseCount--;
 
-            if (_disposed.Value || !IsCurrentEntry(entry.Key, entry) || !entry.HasValue)
+            if (!entry.HasValue || entry.LeaseCount > 0)
                 return default;
 
-            if (entry.LeaseCount > 0 || (!entry.ExpirationPending && !IsExpired(entry)))
-                return default;
+            bool isCurrent = IsCurrentEntry(entry.Key, entry);
 
-            if (!TryRemoveEntry(entry.Key, entry))
-                return default;
+            if (isCurrent && !_disposed.Value)
+            {
+                if (!entry.ExpirationPending && !IsExpired(entry))
+                    return default;
+
+                if (!TryRemoveEntry(entry.Key, entry))
+                    return default;
+            }
 
             shouldDispose = entry.TryTakeValue(out value);
         }
@@ -488,14 +493,19 @@ public class LeasedExpirationSingletonKeyDictionary<TKey, TValue> : ILeasedExpir
 
             entry.LeaseCount--;
 
-            if (_disposed.Value || !IsCurrentEntry(entry.Key, entry) || !entry.HasValue)
+            if (!entry.HasValue || entry.LeaseCount > 0)
                 return;
 
-            if (entry.LeaseCount > 0 || (!entry.ExpirationPending && !IsExpired(entry)))
-                return;
+            bool isCurrent = IsCurrentEntry(entry.Key, entry);
 
-            if (!TryRemoveEntry(entry.Key, entry))
-                return;
+            if (isCurrent && !_disposed.Value)
+            {
+                if (!entry.ExpirationPending && !IsExpired(entry))
+                    return;
+
+                if (!TryRemoveEntry(entry.Key, entry))
+                    return;
+            }
 
             shouldDispose = entry.TryTakeValue(out value);
         }
@@ -516,14 +526,19 @@ public class LeasedExpirationSingletonKeyDictionary<TKey, TValue> : ILeasedExpir
 
             entry.LeaseCount--;
 
-            if (_disposed.Value || !IsCurrentEntry(entry.Key, entry) || !entry.HasValue)
+            if (!entry.HasValue || entry.LeaseCount > 0)
                 return;
 
-            if (entry.LeaseCount > 0 || (!entry.ExpirationPending && !IsExpired(entry)))
-                return;
+            bool isCurrent = IsCurrentEntry(entry.Key, entry);
 
-            if (!TryRemoveEntry(entry.Key, entry))
-                return;
+            if (isCurrent && !_disposed.Value)
+            {
+                if (!entry.ExpirationPending && !IsExpired(entry))
+                    return;
+
+                if (!TryRemoveEntry(entry.Key, entry))
+                    return;
+            }
 
             shouldDispose = entry.TryTakeValue(out value);
         }
@@ -537,7 +552,7 @@ public class LeasedExpirationSingletonKeyDictionary<TKey, TValue> : ILeasedExpir
         foreach (KeyValuePair<TKey, LeasedExpirationEntry<TKey, TValue>> kvp in _entries)
         {
             LeasedExpirationEntry<TKey, TValue> entry = kvp.Value;
-            TValue? value;
+            TValue? value = default;
             bool shouldDispose;
 
             using (await entry.Lock.Lock(cancellationToken).NoSync())
@@ -545,7 +560,7 @@ public class LeasedExpirationSingletonKeyDictionary<TKey, TValue> : ILeasedExpir
                 if (!TryRemoveEntry(kvp.Key, entry))
                     continue;
 
-                shouldDispose = entry.TryTakeValue(out value);
+                shouldDispose = entry.LeaseCount <= 0 && entry.TryTakeValue(out value);
             }
 
             if (shouldDispose)
@@ -558,7 +573,7 @@ public class LeasedExpirationSingletonKeyDictionary<TKey, TValue> : ILeasedExpir
         foreach (KeyValuePair<TKey, LeasedExpirationEntry<TKey, TValue>> kvp in _entries)
         {
             LeasedExpirationEntry<TKey, TValue> entry = kvp.Value;
-            TValue? value;
+            TValue? value = default;
             bool shouldDispose;
 
             using (entry.Lock.LockSync())
@@ -566,7 +581,7 @@ public class LeasedExpirationSingletonKeyDictionary<TKey, TValue> : ILeasedExpir
                 if (!TryRemoveEntry(kvp.Key, entry))
                     continue;
 
-                shouldDispose = entry.TryTakeValue(out value);
+                shouldDispose = entry.LeaseCount <= 0 && entry.TryTakeValue(out value);
             }
 
             if (shouldDispose)

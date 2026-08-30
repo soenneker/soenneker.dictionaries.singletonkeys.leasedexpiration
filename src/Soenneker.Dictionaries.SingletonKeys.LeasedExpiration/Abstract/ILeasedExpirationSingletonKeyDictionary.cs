@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics.Contracts;
 using System.Threading;
 using System.Threading.Tasks;
 using Soenneker.Dictionaries.SingletonKeys.LeasedExpiration;
@@ -28,7 +27,6 @@ public interface ILeasedExpirationSingletonKeyDictionary<TKey, TValue> : IDispos
     /// <param name="key">Key used to locate the target entry.</param>
     /// <param name="cancellationToken">Token used to cancel the operation.</param>
     /// <returns>A task whose result is the requested singleton Lease.</returns>
-    [Pure]
     ValueTask<SingletonLease<TKey, TValue>> GetLease(TKey key, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -38,7 +36,6 @@ public interface ILeasedExpirationSingletonKeyDictionary<TKey, TValue> : IDispos
     /// <param name="key">Key used to locate the target entry.</param>
     /// <param name="cancellationToken">Token used to cancel the operation.</param>
     /// <returns>The resulting singleton Lease.</returns>
-    [Pure]
     SingletonLease<TKey, TValue> GetLeaseSync(TKey key, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -49,7 +46,6 @@ public interface ILeasedExpirationSingletonKeyDictionary<TKey, TValue> : IDispos
     /// <param name="keyFactory">Function that derives a key from the supplied state.</param>
     /// <param name="cancellationToken">Token used to cancel the operation.</param>
     /// <returns>A task whose result is the requested singleton Lease.</returns>
-    [Pure]
     ValueTask<SingletonLease<TKey, TValue>> GetLease<TState>(TState state, Func<TState, TKey> keyFactory, CancellationToken cancellationToken = default)
         where TState : notnull;
 
@@ -62,7 +58,6 @@ public interface ILeasedExpirationSingletonKeyDictionary<TKey, TValue> : IDispos
     /// <param name="keyFactory">Function that derives a key from the supplied state.</param>
     /// <param name="cancellationToken">Token used to cancel the operation.</param>
     /// <returns>The resulting singleton Lease.</returns>
-    [Pure]
     SingletonLease<TKey, TValue> GetLeaseSync<TState>(TState state, Func<TState, TKey> keyFactory, CancellationToken cancellationToken = default)
         where TState : notnull;
 
@@ -151,14 +146,14 @@ public interface ILeasedExpirationSingletonKeyDictionary<TKey, TValue> : IDispos
     bool RemoveSync(TKey key, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Clears and disposes all cached values. Active leases may observe disposed values after this call.
+    /// Detaches all cached values and disposes each value after its last active lease is released.
     /// </summary>
     /// <param name="cancellationToken">Token used to cancel the operation.</param>
     /// <returns>A task that completes when the Leased Expiration Singleton Key Dictionary has been cleared.</returns>
     ValueTask Clear(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Synchronously clears and disposes all cached values. Active leases may observe disposed values after this call.
+    /// Synchronously detaches all cached values and disposes each value after its last active lease is released.
     /// </summary>
     void ClearSync();
 }
