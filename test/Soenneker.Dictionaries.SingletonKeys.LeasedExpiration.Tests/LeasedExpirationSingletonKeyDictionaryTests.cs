@@ -9,7 +9,7 @@ namespace Soenneker.Dictionaries.SingletonKeys.LeasedExpiration.Tests;
 public sealed class LeasedExpirationSingletonKeyDictionaryTests : UnitTest
 {
     [Test]
-    public async Task GetLease_reuses_value_before_idle_expiration(CancellationToken cancellationToken)
+    public async ValueTask GetLease_reuses_value_before_idle_expiration(CancellationToken cancellationToken)
     {
         var calls = 0;
 
@@ -39,7 +39,7 @@ public sealed class LeasedExpirationSingletonKeyDictionaryTests : UnitTest
     }
 
     [Test]
-    public async Task Expiration_waits_for_active_lease(CancellationToken cancellationToken)
+    public async ValueTask Expiration_waits_for_active_lease(CancellationToken cancellationToken)
     {
         var calls = 0;
         var disposed = 0;
@@ -71,7 +71,7 @@ public sealed class LeasedExpirationSingletonKeyDictionaryTests : UnitTest
     }
 
     [Test]
-    public async Task GetLease_resets_idle_expiration(CancellationToken cancellationToken)
+    public async ValueTask GetLease_resets_idle_expiration(CancellationToken cancellationToken)
     {
         var disposed = 0;
 
@@ -109,7 +109,7 @@ public sealed class LeasedExpirationSingletonKeyDictionaryTests : UnitTest
     }
 
     [Test]
-    public async Task Remove_returns_false_while_value_is_leased(CancellationToken cancellationToken)
+    public async ValueTask Remove_returns_false_while_value_is_leased(CancellationToken cancellationToken)
     {
         var disposed = 0;
 
@@ -134,7 +134,7 @@ public sealed class LeasedExpirationSingletonKeyDictionaryTests : UnitTest
     }
 
     [Test]
-    public async Task Different_keys_initialize_concurrently(CancellationToken cancellationToken)
+    public async ValueTask Different_keys_initialize_concurrently(CancellationToken cancellationToken)
     {
         var started = 0;
         var bothStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -184,7 +184,7 @@ public sealed class LeasedExpirationSingletonKeyDictionaryTests : UnitTest
     }
 
     [Test]
-    public async Task Clear_defers_disposal_until_active_lease_is_released(CancellationToken cancellationToken)
+    public async ValueTask Clear_defers_disposal_until_active_lease_is_released(CancellationToken cancellationToken)
     {
         var disposed = 0;
         var dict = new LeasedExpirationSingletonKeyDictionary<string, DisposableValue>(TimeSpan.FromMinutes(1),
