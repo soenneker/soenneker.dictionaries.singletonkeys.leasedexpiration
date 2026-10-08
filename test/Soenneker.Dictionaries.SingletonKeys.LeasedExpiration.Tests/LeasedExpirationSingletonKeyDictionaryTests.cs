@@ -26,7 +26,7 @@ public sealed class LeasedExpirationSingletonKeyDictionaryTests : UnitTest
             firstValue = first.Value;
         }
 
-        await Task.Delay(50);
+        await Task.Delay(50, cancellationToken: cancellationToken);
 
         await using (SingletonLease<string, object> second = await dict.GetLease("a", cancellationToken: cancellationToken))
         {
@@ -54,7 +54,7 @@ public sealed class LeasedExpirationSingletonKeyDictionaryTests : UnitTest
         SingletonLease<string, DisposableValue> firstLease = await dict.GetLease("a", cancellationToken: cancellationToken);
         DisposableValue first = firstLease.Value;
 
-        await Task.Delay(180);
+        await Task.Delay(180, cancellationToken: cancellationToken);
 
         disposed.Should().Be(0);
 
@@ -85,14 +85,14 @@ public sealed class LeasedExpirationSingletonKeyDictionaryTests : UnitTest
             first = lease.Value;
         }
 
-        await Task.Delay(80);
+        await Task.Delay(80, cancellationToken: cancellationToken);
 
         await using (SingletonLease<string, DisposableValue> lease = await dict.GetLease("a", cancellationToken: cancellationToken))
         {
             lease.Value.Should().BeSameAs(first);
         }
 
-        await Task.Delay(80);
+        await Task.Delay(80, cancellationToken: cancellationToken);
 
         await using (SingletonLease<string, DisposableValue> lease = await dict.GetLease("a", cancellationToken: cancellationToken))
         {
@@ -101,7 +101,7 @@ public sealed class LeasedExpirationSingletonKeyDictionaryTests : UnitTest
 
         disposed.Should().Be(0);
 
-        await Task.Delay(180);
+        await Task.Delay(180, cancellationToken: cancellationToken);
 
         disposed.Should().Be(1);
 
@@ -153,7 +153,7 @@ public sealed class LeasedExpirationSingletonKeyDictionaryTests : UnitTest
         Task<SingletonLease<string, string>> first = GetLease("a");
         Task<SingletonLease<string, string>> second = GetLease("b");
 
-        bool bothFactoriesStarted = await Task.WhenAny(bothStarted.Task, Task.Delay(TimeSpan.FromSeconds(1))) ==
+        bool bothFactoriesStarted = await Task.WhenAny(bothStarted.Task, Task.Delay(TimeSpan.FromSeconds(1), cancellationToken: cancellationToken)) ==
                                     bothStarted.Task;
 
         bothStarted.TrySetResult();
